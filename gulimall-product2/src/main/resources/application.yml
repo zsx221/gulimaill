@@ -1,0 +1,35 @@
+#\u5728product\u9879\u76EE\u7684resources\u76EE\u5F55\u4E0B\u65B0\u5EFAapplication.yml
+server:
+  port: 8001
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://182.61.138.205:3306/gulimall_pms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 182.61.138.205:8848
+  application:
+    name: gulimall-product
+  redis:
+    host: 182.61.138.205
+    port: 6378
+    timeout: 6000ms
+#    password: 123456
+    jedis:
+      pool:
+        max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
+        max-wait: -1ms      # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-idle: 10      # 连接池中的最大空闲连接
+        min-idle: 5       # 连接池中的最小空闲连接
+
+
+# MapperScan
+# sql\u6620\u5C04\u6587\u4EF6\u4F4D\u7F6E
+mybatis-plus:
+  mapper-locations: classpath:/mapper/*.xml
+  global-config:
+    db-config:
+      id-type: auto
