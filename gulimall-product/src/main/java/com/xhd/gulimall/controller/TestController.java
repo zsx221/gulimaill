@@ -4,13 +4,16 @@ import com.alibaba.fastjson.JSON;
 import com.xhd.gulimall.common.utils.R;
 import com.xhd.gulimall.service.CategoryService;
 import com.xhd.gulimall.vo.Catelog2Vo;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.redisson.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import redis.clients.jedis.Jedis;
 
@@ -20,6 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @RestController
+@Slf4j
 public class TestController {
     @Autowired
     StringRedisTemplate stringRedisTemplate;
@@ -29,7 +33,8 @@ public class TestController {
 
 //    @Autowired
 //    Jedis jedis;
-
+    @Autowired
+    RedissonClient redissonClient;
     @RequestMapping("/test")
     public R redisTest(){
         ValueOperations<String,String> ops = stringRedisTemplate.opsForValue();
@@ -115,5 +120,90 @@ public class TestController {
         System.out.println("缓存命中，直接返回");
         String s = JSON.toJSONString(redisCategory);
         return R.ok(s).put("catalogJSON",redisCategory);
+    }
+    //读写锁，写锁和读锁两者不可共同访问同一资源。(写锁为互斥锁，而读锁为共享锁)
+    @RequestMapping("/Write")
+    public R redissionReadWriteLock(){
+        String s="";
+        RReadWriteLock lock = redissonClient.getReadWriteLock("lock");
+        RLock rLock = lock.writeLock();
+        try {
+            //加写锁
+            rLock.lock();
+            log.info("加写锁");
+            s=UUID.randomUUID().toString();
+            Thread.sleep(30000);
+            stringRedisTemplate.opsForValue().set("value",s);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }finally {
+            log.info("释放写锁");
+            rLock.unlock();
+        }
+        return R.ok(s);
+    }
+    @RequestMapping("/Read")
+    public R redissionReadLock(){
+        String value=stringRedisTemplate.opsForValue().get("value");
+        RReadWriteLock lock = redissonClient.getReadWriteLock("lock");
+        RLock rLock = lock.readLock();
+        String s="";
+        try {
+            //加读锁
+            rLock.lock();
+            log.info("加读锁");
+            Thread.sleep(30000);
+            s = stringRedisTemplate.opsForValue().get("value");
+            System.out.println(s);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }finally {
+            log.info("释放读锁");
+            rLock.unlock();
+        }
+        return R.ok(s);
+    }
+    @RequestMapping("door")
+    @ResponseBody
+    public String door() throws InterruptedException {
+        log.info("下课了，快点走，我要关门了");
+        RCountDownLatch door = redissonClient.getCountDownLatch("door");
+        door.trySetCount(5l);
+        redissonClient.wait();
+        log.info("五个班都下课了，要关门了");
+        return "五个班都下课了，要关门了";
+    }
+        @RequestMapping("go")
+    @ResponseBody
+    public String gogogo() throws InterruptedException {
+        RCountDownLatch door = redissonClient.getCountDownLatch("door");
+        door.countDown();
+        log.info(Thread.currentThread().getName()+"走了");
+        return Thread.currentThread().getName()+"走了";
+    }
+    //场景：停车位
+    //三个车位
+    //信号量可以作为流量限流
+    @RequestMapping("park")
+    public R space(){
+        RSemaphore car_space = redissonClient.getSemaphore("car_space");
+        try {
+            car_space.acquire();
+            log.info("车位-1");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+       return R.ok();
+    }
+    @RequestMapping("GO")
+    public R car(){
+        RSemaphore car_space = redissonClient.getSemaphore("car_space");
+        try {
+            car_space.release();
+            log.info("车位+1");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return R.ok();
     }
 }

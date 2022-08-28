@@ -5,6 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mysql.cj.xdevapi.AbstractFilterParams;
 import com.xhd.gulimall.common.utils.PageUtils;
 import com.xhd.gulimall.common.utils.Query;
 import com.xhd.gulimall.dao.CategoryDao;
@@ -41,6 +42,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Autowired
     CategoryBrandRelationService categoryBrandRelationService;
+    @Autowired
+    RedissonClient redisson;
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -244,23 +247,21 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
 
     }
-//
-//    public Map<String, List<Catelog2Vo>> getCatalogJsonFromDbWithRedissonlock() {
-//
-//        // 1 锁的名字。锁的粒度
-//        RLock lock = redisson.getLock("CatalogJson-lock");
-//        lock.lock();
-//        Map<String, List<Catelog2Vo>> dataFromDB;
-//        try {
-//            dataFromDB = getDataFromDB();
-//
-//        } finally {
-//            lock.unlock();
-//        }
-//        return dataFromDB;
-//
-//
-//    }
+
+    public Map<String, List<Catelog2Vo>> getCatalogJsonFromDbWithRedissonlock() {
+
+        // 1 锁的名字。锁的粒度
+        RLock lock = redisson.getLock("CatalogJson-lock");
+        lock.lock();
+        Map<String, List<Catelog2Vo>> dataFromDB;
+        try {
+            dataFromDB = getDataFromDB();
+
+        } finally {
+            lock.unlock();
+        }
+        return dataFromDB;
+    }
 
     private Map<String, List<Catelog2Vo>> getDataFromDB() {
 
