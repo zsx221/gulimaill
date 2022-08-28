@@ -1,6 +1,6 @@
 #\u5728product\u9879\u76EE\u7684resources\u76EE\u5F55\u4E0B\u65B0\u5EFAapplication.yml
 server:
-  port: 8001
+  port: 10001
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -12,7 +12,7 @@ spring:
       discovery:
         server-addr: 182.61.138.205:8848
   application:
-    name: gulimall-product
+    name: gulimall-product2
   redis:
     host: 182.61.138.205
     port: 6378
