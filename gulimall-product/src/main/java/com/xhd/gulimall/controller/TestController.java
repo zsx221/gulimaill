@@ -206,4 +206,11 @@ public class TestController {
         }
         return R.ok();
     }
+    @RequestMapping("cache_test")
+    public R Cache_test(){
+        long l = System.currentTimeMillis();
+        val categorys = categoryService.getLevel1Categorys();
+        System.out.println("消耗时间，" + (System.currentTimeMillis() - l));
+        return R.ok().put("category",categorys);
+    }
 }

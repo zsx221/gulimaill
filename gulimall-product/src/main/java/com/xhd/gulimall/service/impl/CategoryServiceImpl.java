@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -120,8 +121,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      *
      * @param category
      */
-    @CacheEvict(value = "category",allEntries = true)  // 失效模式
-    @CachePut // 双写模式
+//    @CacheEvict(value = "category",allEntries = true)  // 失效模式
+//    @CachePut // 双写模式
+    @Caching(evict = {@CacheEvict(value = "category",key = "'value'"),@CacheEvict(value = "category",key = "'car_space'")})
     @Transactional
     @Override
     public void updateCasecade(CategoryEntity category) {
@@ -130,12 +132,27 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     }
 
     // 每一个需要缓存的数据我们都要指定放到哪个名字的缓存。【缓存的分区】
-    @Cacheable(value = {"category"},key = "#root.method.name",sync = true)  // 当前方法的结果需要缓存，如果缓存中有，方法不调用，如果缓存中没有，会调用方法，最后将方法的结果放入缓存
+    //,key = "#root.method.name",sync = true
+    /**
+     *1、每一个需要缓存的数据我们都来指定要放到那个名字的缓存。【缓存的分区(按照业务类型分)】
+     *2、@Cacheable(i "category"])代表当前方法的结果需要缓存，如果缓存中有，方法不用调用。*如果缓存中没有，会调用方法,最后将方法的结果放入缓存
+     *3、默认行为
+         1）、如果缓存中有,方法不用调用。
+         2) 、key默认自动生成;缓存的名字::SimpleKey [](自主生成的key值)
+         3)、缓存的value的值。默认使用jde序列化机制，将序列化后的数据存到redis
+         4） 、默认ttL时间-1;
+     自定义:
+     1）、指定生成的缓存使用的key:key属性指定，接受一个SpEL
+     spEL的详细https : / / docs.spring.io/spring/docs/5.1.12.RELEASE/spring-framework-reference
+     *
+     2)、指定缓存的数据的存活时间:配置文件中修改ttL3)、将数据保存为json格式:
+     */
+    @Cacheable(value = {"category"},key = "#root.method.name")  // 当前方法的结果需要缓存，如果缓存中有，方法不调用，如果缓存中没有，会调用方法，最后将方法的结果放入缓存
     @Override
     public List<CategoryEntity> getLevel1Categorys() {
         long l = System.currentTimeMillis();
         List<CategoryEntity> categoryEntities = baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
-        System.out.println("消耗时间，" + (System.currentTimeMillis() - 1));
+        System.out.println("消耗时间，" + (System.currentTimeMillis() - l));
         return categoryEntities;
     }
 
