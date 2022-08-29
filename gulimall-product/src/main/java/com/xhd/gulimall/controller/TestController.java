@@ -5,6 +5,8 @@ import com.xhd.gulimall.common.utils.R;
 import com.xhd.gulimall.service.CategoryService;
 import com.xhd.gulimall.vo.Catelog2Vo;
 import lombok.val;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -26,6 +28,8 @@ public class TestController {
 
     @Autowired
     CategoryService categoryService;
+    @Autowired
+    RedissonClient redissonClient;
 
 //    @Autowired
 //    Jedis jedis;
