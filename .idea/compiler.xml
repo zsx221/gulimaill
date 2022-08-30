@@ -9,7 +9,6 @@
         <outputRelativeToContentRoot value="true" />
         <module name="gulimall-coupon" />
         <module name="gulimall-common" />
-        <module name="renren-fast" />
         <module name="gulimall-order" />
         <module name="gulimall-ware" />
         <module name="gulimall-member" />
@@ -19,6 +18,10 @@
         <module name="renren-generator" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="gulimall-product (1)" target="1.8" />
+      <module name="renren-fast" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
