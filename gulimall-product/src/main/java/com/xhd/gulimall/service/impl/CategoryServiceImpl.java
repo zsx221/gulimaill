@@ -122,7 +122,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      * @param category
      */
 //    @CacheEvict(value = "category",allEntries = true)  // 失效模式
-//    @CachePut // 双写模式
+//    @CachePut                                          // 双写模式
     @Caching(evict = {@CacheEvict(value = "category",key = "'value'"),@CacheEvict(value = "category",key = "'car_space'")})
     @Transactional
     @Override
@@ -132,7 +132,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     }
 
     // 每一个需要缓存的数据我们都要指定放到哪个名字的缓存。【缓存的分区】
-    //,key = "#root.method.name",sync = true
+    // key = "#root.method.name",sync = true
     /**
      *1、每一个需要缓存的数据我们都来指定要放到那个名字的缓存。【缓存的分区(按照业务类型分)】
      *2、@Cacheable(i "category"])代表当前方法的结果需要缓存，如果缓存中有，方法不用调用。*如果缓存中没有，会调用方法,最后将方法的结果放入缓存
@@ -146,8 +146,27 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      spEL的详细https : / / docs.spring.io/spring/docs/5.1.12.RELEASE/spring-framework-reference
      *
      2)、指定缓存的数据的存活时间:配置文件中修改ttL3)、将数据保存为json格式:
+
+     3)、将数据保存为json格式;
+        自定义RedisCacheConfiguration即可
+     spring-Cache的不足;
+         读模式:
+             缓存穿透:查询一个null数据。解决:缓存空数据; ache-null-values=true
+             缓存击穿:大量并发进来同时查询一个正好过期的数据。解决:加锁;?默认是无加锁的; sync = true(加锁，解决)
+             缓存雪崩。大量的key同时过期。解决:加随机时间。加上过期时间。
+                 : spring.cache.redis.time-to-Live=36eeoce、
+         写模式:(缓存与数据库一致)
+         1)、读写加锁。
+         2) 、引入Canal，感知到MysQL的更新去更新数据库3) 、读多写多,直接去数据库查询就行
+         3)、读多写多，直接去数据库查就行
+     总结:
+     常规数据（读多写少，即时性，一致性要求不高的数据）﹔完全可以使用spring-Cache
+     特殊数据。特殊设计
+     原理:
+     CacheManager(RedisCacheManager)->Cache(RedisCache)->Cache负责缓存的读写
      */
-    @Cacheable(value = {"category"},key = "#root.method.name")  // 当前方法的结果需要缓存，如果缓存中有，方法不调用，如果缓存中没有，会调用方法，最后将方法的结果放入缓存
+
+     @Cacheable(value = {"category"},key = "#root.method.name")  // 当前方法的结果需要缓存，如果缓存中有，方法不调用，如果缓存中没有，会调用方法，最后将方法的结果放入缓存
     @Override
     public List<CategoryEntity> getLevel1Categorys() {
         long l = System.currentTimeMillis();

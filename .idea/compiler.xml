@@ -13,13 +13,13 @@
         <module name="gulimall-ware" />
         <module name="gulimall-member" />
         <module name="gulimall-gateway" />
-        <module name="gulimall-product2" />
         <module name="gulimall-product" />
         <module name="renren-generator" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="gulimall-product (1)" target="1.8" />
+      <module name="gulimall-product2" target="1.8" />
       <module name="renren-fast" target="1.8" />
     </bytecodeTargetLevel>
   </component>

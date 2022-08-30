@@ -6,11 +6,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 
 @SpringBootApplication
 @Slf4j
 @EnableDiscoveryClient
 @EnableCaching
+@RefreshScope   //动态获取配置
 @MapperScan("com.xhd.gulimall.dao")
 public class GulimallProductApplication {
     /*合springCache简化缓存开发) 、引入依赖
