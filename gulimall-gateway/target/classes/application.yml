@@ -1,0 +1,19 @@
+spring:
+  cloud:
+    gateway:                
+      routes:
+        - id: product_route
+          uri: lb://gulimall-product
+          predicates:
+              - Path=/api/gulimall-product/**
+          filters:
+              - RewritePath=/api/(?<segment>.*),/$\{segment}
+
+        - id: admin_route
+          uri: lb://renren-fast
+          predicates:
+            - Path=/api/**
+          filters:
+            - RewritePath=/api/(?<segment>.*),/renren-fast/api/$\{segment}
+          #http://localhost:88/api/captcha.jpg?uuid=1c509257-9fee-4da4-8512-ef98486f58a7
+          #http://localhost:8080/renren-fast/api/captcha.jpg?uuid=1c509257-9fee-4da4-8512-ef98486f58a7
