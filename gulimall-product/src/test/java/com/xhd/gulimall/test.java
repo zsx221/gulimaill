@@ -65,4 +65,51 @@ public class test {
                 return "现在的线程是" + Thread.currentThread().getName();
             }
         }
+        @Test
+        public void runtogeter(){       //两任务完成，一任务执行，
+            CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
+                System.out.println("任务一线程开始" + Thread.currentThread().getName());
+                System.out.println("任务一结束");
+                return "任务一";
+            }, executor);
+
+            CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
+                System.out.println("任务二线程开始" + Thread.currentThread().getName());
+                System.out.println("任务二结束");
+                return "任务二";
+            }, executor);
+//            future1.runAfterBothAsync(future2,()->{   //并不能感知前两个任务的结果
+//                System.out.println("任务一，任务二结束，任务三开始");
+//            },executor);
+            future1.thenAcceptBothAsync(future2,(f1,f2)->{
+                System.out.println("接收前两个任务的结果"+f1+"--->>>"+f2);
+            },executor) ;
+            System.out.println("main   end   .....");
+        }
+        @Test
+        public  void  runEither(){
+            CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
+                System.out.println("任务一线程开始" + Thread.currentThread().getName());
+                System.out.println("任务一结束");
+                return "任务一";
+            }, executor);
+
+            CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
+                System.out.println("任务二线程开始" + Thread.currentThread().getName());
+                try {
+                    Thread.sleep(1000);
+                    System.out.println("任务二结束");
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                return "任务二结束 ";
+            }, executor);
+//            future1.runAfterEitherAsync(future2,()->{
+//                System.out.println("任务三开始");
+//            },executor);
+            future2.runAfterEitherAsync(future1,()->{
+                System.out.println("任务三开始");
+            },executor);
+            System.out.println("main   end   .....");
+        }
     }
