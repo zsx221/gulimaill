@@ -10,6 +10,7 @@
         <module name="gulimall-coupon" />
         <module name="gulimall-cart" />
         <module name="gulimall-common" />
+        <module name="leetcode" />
         <module name="gulimall-order" />
         <module name="gulimall-ware" />
         <module name="gulimall-member" />
