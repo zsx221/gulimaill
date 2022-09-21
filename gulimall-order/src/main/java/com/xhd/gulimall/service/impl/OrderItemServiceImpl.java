@@ -28,7 +28,6 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemDao, OrderItemEnt
                 new Query<OrderItemEntity>().getPage(params),
                 new QueryWrapper<OrderItemEntity>()
         );
-
         return new PageUtils(page);
     }
     /*queues：声明需要监听的所有队列
@@ -41,7 +40,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemDao, OrderItemEnt
 
     @RabbitListener(queues = ("directQueue"))
     public void receviceMessage(Object message){
-        //rabbitTemplate.convertSendAndReceive("directExchange","directExchange","helllo,world,i have receviced");
+        // rabbitTemplate.convertSendAndReceive("directExchange","directExchange","helllo,world,i have receviced");
         System.out.println("接收到消息。。。。内容："+message);
     }
 }

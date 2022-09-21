@@ -1,6 +1,7 @@
 package com.xhd.gulimall.config;
 
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -8,46 +9,67 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class MyRabbitconfig {
-    @Autowired
-    RabbitTemplate rabbitTemplate;
 
-    //使用json序列化机制，进行消息转换
+    private RabbitTemplate rabbitTemplate;
+
+    @Primary
     @Bean
-    public MessageConverter messageConverter(){
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate((org.springframework.amqp.rabbit.connection.ConnectionFactory) connectionFactory);
+        this.rabbitTemplate = rabbitTemplate;
+        rabbitTemplate.setMessageConverter(messageConverter());
+        initRabbitTemplate();
+        return rabbitTemplate;
+    }
+
+    @Bean
+    public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
-    //定制Rabbitmq回调机制
-    /*  1、第一步开启发送端确定
-    *       spring.rabbitmq.publisher-confirms=true
-    *   2、消息成功回调
-    * #开启发生端抵达队列的确认
-        spring.rabbitmq.publisher-returns=true
-        #只要抵达队列，以异步发送优先回调我们这个returnconfirm
-        spring.rabbitmq.template.mandatory=true
-    * */
-    public void initRabbitTemplate(){
+    /**
+     * 定制RabbitTemplate
+     * 1、服务收到消息就会回调
+     *      1、spring.rabbitmq.publisher-confirms: true
+     *      2、设置确认回调
+     * 2、消息正确抵达队列就会进行回调
+     *      1、spring.rabbitmq.publisher-returns: true
+     *         spring.rabbitmq.template.mandatory: true
+     *      2、设置确认回调ReturnCallback
+     *
+     * 3、消费端确认(保证每个消息都被正确消费，此时才可以broker删除这个消息)
+     *
+     */
+    // @PostConstruct  //MyRabbitConfig对象创建完成以后，执行这个方法
+    public void initRabbitTemplate() {
 
-        rabbitTemplate.setConfirmCallback(new RabbitTemplate.ConfirmCallback() {
-            /*  @Param correlationData  关联的唯一id
-             *  @Param ack  消息是否成功收到
-             *  @Param  cause 失败的原因
-             * */
-            @Override
-            public void confirm(CorrelationData correlationData, boolean ack, String cause) {
-                System.out.println("confirm...correlationData"+correlationData+"是否ack :"+ack+"失败的原因cause"+cause);
-            }
+        /**
+         * 1、只要消息抵达Broker就ack=true
+         * correlationData：当前消息的唯一关联数据(这个是消息的唯一id)
+         * ack：消息是否成功收到
+         * cause：失败的原因
+         */
+        //设置确认回调
+        rabbitTemplate.setConfirmCallback((correlationData,ack,cause) -> {
+            System.out.println("confirm...correlationData["+correlationData+"]==>ack:["+ack+"]==>cause:["+cause+"]");
         });
-        //设置消息抵达队列的回调机制
-        rabbitTemplate.setReturnCallback(new RabbitTemplate.ReturnCallback() {
 
-            @Override
-            public void returnedMessage(Message message, int i, String s, String s1, String s2) {
 
-            }
+        /**
+         * 只要消息没有投递给指定的队列，就触发这个失败回调
+         * message：投递失败的消息详细信息
+         * replyCode：回复的状态码
+         * replyText：回复的文本内容
+         * exchange：当时这个消息发给哪个交换机
+         * routingKey：当时这个消息用哪个路邮键
+         */
+        rabbitTemplate.setReturnCallback((message,replyCode,replyText,exchange,routingKey) -> {
+            System.out.println("Fail Message["+message+"]==>replyCode["+replyCode+"]" +
+                    "==>replyText["+replyText+"]==>exchange["+exchange+"]==>routingKey["+routingKey+"]");
         });
     }
 }
