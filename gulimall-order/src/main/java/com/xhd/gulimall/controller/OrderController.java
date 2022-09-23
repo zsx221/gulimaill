@@ -32,7 +32,6 @@ public class OrderController {
     @RequiresPermissions("gulimall:order:list")
     public R list(@RequestParam Map<String, Object> params) {
         PageUtils page = orderService.queryPage(params);
-
         return R.ok().put("page", page);
     }
 
@@ -80,5 +79,4 @@ public class OrderController {
 
         return R.ok();
     }
-
 }

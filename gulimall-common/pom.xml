@@ -26,6 +26,11 @@
     </build>
 
     <dependencies>
+        <!--seata依赖-->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+        </dependency>
         <!-- 服务注册发现-->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
